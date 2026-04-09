@@ -51,4 +51,4 @@ if st.button("Send") and user_query:
     
     if response_stream:
         # st.write_stream is the magic part that fixed the JSON/Object view
-        st.write_stream(response_stream)
+       st.write_stream(response)
