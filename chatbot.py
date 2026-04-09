@@ -1,16 +1,29 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
 
-# connect API using Streamlit secrets
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Configure Gemini API
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# Load model
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 def generate_response(user_input):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful health awareness assistant."},
-            {"role": "user", "content": user_input}
-        ]
-    )
+    try:
+        response = model.generate_content(
+            f"""
+            You are a friendly health awareness chatbot.
 
-    return response.choices[0].message.content
+            Guidelines:
+            - Give simple and clear answers
+            - Be supportive and helpful
+            - Suggest healthy habits
+            - If serious issue, suggest consulting a doctor
+
+            User: {user_input}
+            """
+        )
+
+        return response.text if response.text else "Sorry, I couldn't understand. Can you rephrase?"
+
+    except Exception as e:
+        return "⚠️ Error: Unable to generate response. Please try again."
