@@ -21,13 +21,15 @@ model = genai.GenerativeModel(
 
 def generate_response(user_input):
     try:
-        response = model.generate_content(user_input)
-        return response.text if response.text else "No response generated."
+        # Add stream=True here
+        response = model.generate_content(user_input, stream=True)
+        
+        # In Streamlit, use st.write_stream to display it beautifully
+        return response
     except Exception as e:
         return f"⚠️ Error: {str(e)}"
 
-# UI (Simplified)
-st.title("Health Awareness Chatbot")
-user_query = st.text_input("Ask a question:")
-if st.button("Send") and user_query:
-    st.write(generate_response(user_query))
+# In your UI section:
+if st.button("Send"):
+    full_response = generate_response(user_query)
+    st.write_stream(full_response)
