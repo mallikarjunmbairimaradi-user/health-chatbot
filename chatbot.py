@@ -21,23 +21,23 @@ model = genai.GenerativeModel(
 
 def generate_response(user_input):
     try:
-        # Add the config here to control speed and length
+        # Use stream=True for instant word-by-word delivery
         response = model.generate_content(
             user_input,
+            stream=True, 
             generation_config=genai.types.GenerationConfig(
-                max_output_tokens=300,  # Limits length to speed up response
-                temperature=0.7,        # Keeps responses balanced and focused
+                max_output_tokens=200, # Smaller limit = faster start
+                temperature=0.6,       # Lower temperature is slightly faster
             )
         )
-        
-        if response.text:
-            return response.text
-        return "I'm sorry, I couldn't generate a response."
-
+        return response
     except Exception as e:
-        return f"⚠️ API Error: {str(e)}"
-# In your UI section:
+        st.error(f"⚠️ Error: {str(e)}")
+        return None
+
+# --- In your UI section ---
 if st.button("Send") and user_query:
-    with st.spinner("Analyzing..."): # This adds a nice loading animation
-        response = generate_response(user_query)
-        st.write(response)
+    # This is the magic part for sub-second UI feedback
+    response_stream = generate_response(user_query)
+    if response_stream:
+        st.write_stream(response_stream)
