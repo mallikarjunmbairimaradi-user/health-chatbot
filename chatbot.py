@@ -4,8 +4,8 @@ import google.generativeai as genai
 # Configure API
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# Use correct model
-model = genai.GenerativeModel("gemini-1.5-flash")
+# Use compatible model
+model = genai.GenerativeModel("gemini-1.0-pro")
 
 
 def generate_response(user_input):
