@@ -1,5 +1,5 @@
 import streamlit as st
-st.write(st.secrets)
+import google.generativeai as genai
 
 # Configure Gemini API
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -11,19 +11,12 @@ def generate_response(user_input):
     try:
         response = model.generate_content(
             f"""
-            You are a friendly health awareness chatbot.
-
-            Guidelines:
-            - Give simple and clear answers
-            - Be supportive and helpful
-            - Suggest healthy habits
-            - If serious issue, suggest consulting a doctor
+            You are a helpful health awareness assistant.
+            Give simple, clear and supportive answers.
 
             User: {user_input}
             """
         )
-
-        return response.text if response.text else "Sorry, I couldn't understand. Can you rephrase?"
-
-    except Exception as e:
-        return "⚠️ Error: Unable to generate response. Please try again."
+        return response.text if response.text else "Please rephrase your question."
+    except Exception:
+        return "⚠️ Error generating response. Try again."
