@@ -18,5 +18,5 @@ def generate_response(user_input):
             """
         )
         return response.text if response.text else "Please rephrase your question."
-    except Exception:
-        return "⚠️ Error generating response. Try again."
+   except Exception as e:
+    return f"Error: {str(e)}"
