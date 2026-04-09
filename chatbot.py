@@ -1,26 +1,33 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configure API
+# Configure
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# Use the latest 2026 stable preview model
-# Note: Ensure you do NOT use "models/text-bison" or "models/gemini-1.5"
+# 1. DEBUG STEP: This will print the models you actually have access to in your terminal
+# This helps if 'gemini-3-flash-preview' is also blocked for some reason
+try:
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            print(f"Available Model: {m.name}")
+except:
+    pass
+
+# 2. THE FIX: Use the explicit v1beta path
 model = genai.GenerativeModel(
-    model_name="gemini-3.1-flash-preview",
-    system_instruction="You are a professional Health Awareness Chatbot for disease awareness. Be helpful and accurate."
+    model_name="models/gemini-3-flash-preview",
+    system_instruction="You are a Public Health Chatbot. Give disease awareness info."
 )
 
 def generate_response(user_input):
     try:
-        # The current method for Gemini models
         response = model.generate_content(user_input)
-        
-        if response.text:
-            return response.text
-        else:
-            return "I'm having trouble understanding. Could you rephrase?"
-
+        return response.text if response.text else "No response generated."
     except Exception as e:
-        # This will show you if the API key itself is the issue
-        return f"⚠️ API Error: {str(e)}"
+        return f"⚠️ Error: {str(e)}"
+
+# UI (Simplified)
+st.title("Health Awareness Chatbot")
+user_query = st.text_input("Ask a question:")
+if st.button("Send") and user_query:
+    st.write(generate_response(user_query))
