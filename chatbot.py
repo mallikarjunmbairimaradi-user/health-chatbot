@@ -21,23 +21,26 @@ model = genai.GenerativeModel(
 
 def generate_response(user_input):
     try:
-        # Use stream=True for instant word-by-word delivery
-        response = model.generate_content(
+        # Notice stream=True here
+        return model.generate_content(
             user_input,
             stream=True, 
             generation_config=genai.types.GenerationConfig(
-                max_output_tokens=200, # Smaller limit = faster start
-                temperature=0.6,       # Lower temperature is slightly faster
+                max_output_tokens=250,
+                temperature=0.7,
             )
         )
-        return response
     except Exception as e:
         st.error(f"⚠️ Error: {str(e)}")
         return None
 
 # --- In your UI section ---
+# --- In your Streamlit UI section ---
 if st.button("Send") and user_query:
-    # This is the magic part for sub-second UI feedback
+    # 1. Start the stream
     response_stream = generate_response(user_query)
+    
+    # 2. Use st.write_stream to automatically "unwrap" the JSON 
+    # and print only the text as it arrives
     if response_stream:
         st.write_stream(response_stream)
