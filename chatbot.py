@@ -4,25 +4,18 @@ import google.generativeai as genai
 # Configure API
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# Initialize the model with a System Instruction for your health chatbot
+# Use the Gemini 3.1 Flash model (Current 2026 Stable)
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction="You are a helpful and empathetic Health Awareness Chatbot. "
-                       "Provide accurate information about diseases and wellness. "
-                       "Always include a disclaimer that you are an AI and users "
-                       "should consult a doctor for medical advice."
+    model_name="gemini-3.1-flash",
+    system_instruction="You are a Health Awareness Assistant for disease awareness. Provide concise, accurate info and always remind users to consult a professional."
 )
 
 def generate_response(user_input):
     try:
-        # Use the updated model method
         response = model.generate_content(user_input)
-        
         if response.text:
             return response.text
-        else:
-            return "I'm sorry, I couldn't generate a response. Could you rephrase that?"
-
+        return "I couldn't process that. Please try again."
     except Exception as e:
-        # Catching specific errors like invalid API keys or quota limits
-        return f"⚠️ API Error: {str(e)}"
+        # If this fails, it will print the specific model-related error
+        return f"⚠️ Connection Error: {str(e)}"
