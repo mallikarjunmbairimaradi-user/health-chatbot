@@ -23,32 +23,25 @@ model = genai.GenerativeModel(
 # --- 2. THE CHAT LOGIC ---
 def generate_response(user_input):
     try:
-        # stream=True provides the "instant" typing effect
+        # Add the config here to control speed and length
         response = model.generate_content(
             user_input,
-            stream=True,
             generation_config=genai.types.GenerationConfig(
-                max_output_tokens=300,
-                temperature=0.7,
+                max_output_tokens=300,  # Limits length to speed up response
+                temperature=0.7,        # Keeps responses balanced and focused
             )
         )
-        return response
+        
+        if response.text:
+            return response.text
+        return "I'm sorry, I couldn't generate a response."
 
     except Exception as e:
-        # Handling the "429 Quota Exceeded" error gracefully
-        if "429" in str(e):
-            st.warning("⏱️ Rate limit reached. Waiting 30 seconds before next request...")
-            time.sleep(5) # Brief pause
-            return None
-        else:
-            st.error(f"⚠️ API Error: {str(e)}")
-            return None
+        return f"⚠️ API Error: {str(e)}"
 
 # --- 3. STREAMLIT UI ---
 # --- In your UI section ---
 if st.button("Send") and user_query:
-    response_stream = generate_response(user_query)
-    
-    if response_stream:
-        # st.write_stream is the magic part that fixed the JSON/Object view
-       st.write_stream(response)
+    with st.spinner("Analyzing..."): # This adds a nice loading animation
+        response = generate_response(user_query)
+        st.write(response)
