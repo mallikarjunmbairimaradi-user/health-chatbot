@@ -30,6 +30,7 @@ def generate_response(user_input):
         return f"⚠️ Error: {str(e)}"
 
 # In your UI section:
-if st.button("Send"):
-    full_response = generate_response(user_query)
-    st.write_stream(full_response)
+if st.button("Send") and user_query:
+    with st.spinner("Analyzing..."): # This adds a nice loading animation
+        response = generate_response(user_query)
+        st.write(response)
