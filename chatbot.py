@@ -45,31 +45,10 @@ def generate_response(user_input):
             return None
 
 # --- 3. STREAMLIT UI ---
-st.set_page_config(page_title="Health Bot", page_icon="⚕️")
-st.title("⚕️ Health Awareness Chatbot")
-st.markdown("---")
-
-# Initialize chat history for the UI
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# Chat Input
-if prompt := st.chat_input("Ask your health question..."):
-    # Add user message to history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    # Generate and stream assistant response
-    with st.chat_message("assistant"):
-        response_stream = generate_response(prompt)
-        
-        if response_stream:
-            # This is the magic part that displays text instantly
-            full_response = st.write_stream(response_stream)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+# --- In your UI section ---
+if st.button("Send") and user_query:
+    response_stream = generate_response(user_query)
+    
+    if response_stream:
+        # st.write_stream is the magic part that fixed the JSON/Object view
+        st.write_stream(response_stream)
