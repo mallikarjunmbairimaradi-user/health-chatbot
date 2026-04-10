@@ -1,38 +1,47 @@
 import streamlit as st
 from chatbot import generate_response
 
-# 1. Page Config
-st.set_page_config(page_title="Arogya Mitra AI", page_icon="🏥", layout="wide")
+st.set_page_config(page_title="Arogya Mitra AI", page_icon="🏥")
 
-# 2. CSS to handle the layout and prevent "out of frame" issues
+# --- CUSTOM CSS: Unified Bottom Bar ---
 st.markdown("""
     <style>
-    /* Ensure the main content doesn't get hidden behind the bottom bar */
-    .block-container {
-        padding-bottom: 10rem;
-    }
-    
-    /* Make the bottom bar clean and fixed */
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Styles the container for the search and language bar */
-    .bottom-bar {
+    /* 1. Fix the container to the bottom and center it */
+    .bottom-container {
         position: fixed;
-        bottom: 20px;
+        bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        width: 90%;
+        width: 70%; /* Adjust this to make the bar smaller/larger */
         max-width: 800px;
-        display: flex;
-        gap: 10px;
-        align-items: center;
         z-index: 1000;
+        display: flex;
+        align-items: center;
+        background-color: #262730; /* Matches dark theme */
+        border: 1px solid #464646;
+        border-radius: 15px;
+        padding: 5px 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
+
+    /* 2. Style the language dropdown to look like it's part of the bar */
+    .stSelectbox {
+        width: 80px !important;
+        margin-right: 10px;
+    }
+    
+    /* 3. Ensure the chat input doesn't have its own bulky container */
+    .stChatInput {
+        flex-grow: 1;
+    }
+    
+    /* 4. Hide standard Streamlit padding that pushes things out of frame */
+    footer {visibility: hidden;}
+    .block-container {padding-bottom: 100px;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. CHAT HISTORY (Keep your session_state logic here)
+# --- CHAT HISTORY ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -40,33 +49,36 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 4. FIXED BOTTOM BAR (This is the fix)
-# Instead of columns inside a container, we use st.chat_input directly 
-# and put the language selector in the sidebar or just above it.
-
-# Floating Language Selection just above the chat bar
-col_space, col_select = st.columns([0.8, 0.2])
-with col_select:
-    lang = st.selectbox("🌐", ["EN", "HI", "KN", "MR"], label_visibility="collapsed")
-
-# The Chat Input (Streamlit automatically pins this to the bottom correctly)
-prompt = st.chat_input("Ask me about health...", accept_audio=True)
-
-# 5. CHAT LOGIC
-if prompt:
-    # (Your existing logic to handle prompt.text and prompt.audio)
-    user_msg = prompt.text if prompt.text else "🎤 Audio Message"
-    st.session_state.messages.append({"role": "user", "content": user_msg})
+# --- THE UNIFIED BOTTOM BAR ---
+# We use an empty placeholder to inject our elements into the flexbox
+with st.container():
+    # This creates the visual 'bar'
+    st.markdown('<div class="bottom-container">', unsafe_allow_html=True)
     
+    # We use columns ONLY for the input elements to live inside the flexbox
+    c1, c2 = st.columns([0.15, 0.85])
+    
+    with c1:
+        # Language dropdown inside the bar
+        lang = st.selectbox("🌐", ["EN", "HI", "KN", "MR"], label_visibility="collapsed")
+    
+    with c2:
+        # Search bar with Mic inside the bar
+        prompt = st.chat_input("Ask me about health...", accept_audio=True)
+        
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- LOGIC ---
+if prompt:
+    user_content = prompt.text if prompt.text else "🎤 Audio Message"
+    st.session_state.messages.append({"role": "user", "content": user_content})
     with st.chat_message("user"):
-        st.markdown(user_msg)
+        st.markdown(user_content)
 
     with st.chat_message("assistant"):
         with st.spinner("Analyzing..."):
-            # Pass the lang context and the prompt to your chatbot
+            # Update chatbot.py instructions if it still says the old name!
             response = generate_response(prompt) 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
-    
-    # Force a rerun to show messages instantly
     st.rerun()
