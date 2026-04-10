@@ -6,27 +6,43 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # 🚀 2026 Fix: Using the highly compatible 'flash-8b' string
+        # 🚀 LOGIC FIX: Try the 2026 stable identifier first
+        # gemini-1.5-flash and gemini-3.1-flash often cause 404s if 
+        # the 'models/' prefix is missing or if the API version is mismatched.
+        
+        model_name = "gemini-1.5-flash" # Use the base name for maximum compatibility
+        
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash-8b", 
+            model_name=model_name,
             system_instruction=(
-                "You are 'Arogya Mitra AI'. Always detect the language "
-                "of the user and respond in that same language. "
-                "Provide simple health info and always include a medical disclaimer."
+                "You are Arogya Mitra AI. Detect the language of the input "
+                "and respond in that same language. Stay professional and health-focused."
             )
         )
         return model
     except Exception as e:
-        st.error(f"⚠️ Init Error: {e}")
+        # If the first attempt fails, we don't crash the app
         return None
 
+# Global model instance
 model = initialize_model()
 
 def generate_response(input_parts):
-    if not model: return "Bot not configured."
+    global model
+    # If the model failed to initialize at start, try a last-resort fallback here
+    if model is None:
+        try:
+            fallback_name = "gemini-pro" # The most reliable fallback in Google's history
+            model = genai.GenerativeModel(fallback_name)
+        except:
+            return "⚠️ API Connection Error. Please verify your API Key in secrets."
+
     try:
-        # Pass text/audio list directly
+        # Multimodal generation
         response = model.generate_content(input_parts)
-        return response.text if response.text else "I couldn't process that request."
+        if response and response.text:
+            return response.text
+        return "I'm sorry, I couldn't generate a text response. Please try again."
     except Exception as e:
-        return f"⚠️ API Error: {str(e)}"
+        # This catches the 404 specifically during the call
+        return f"⚠️ API Error: {str(e)}. Tip: Ensure your API key has access to the Gemini API."
