@@ -6,14 +6,15 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # 🚀 2026 Update: Use the Gemini 3.1 series
-        # gemini-1.5-flash was shut down in Jan 2026
+        # 🚀 Refined Instruction for better English/Multilingual balance
         model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite-preview", 
+            model_name="gemini-3.1-flash-lite-preview", # Using the most stable multimodal version
             system_instruction=(
                 "You are 'Arogya Mitra AI', a professional health assistant. "
-                "Respond in the same language the user uses. "
-                "Provide helpful medical awareness and always advise a doctor visit."
+                "1. If the user speaks or types in English, respond in English. "
+                "2. If the user uses a regional language (Hindi, Kannada, etc.), respond in that same language. "
+                "3. Use simple, clear terms for health awareness. "
+                "4. Always include a disclaimer to consult a doctor."
             )
         )
         return model
@@ -26,8 +27,13 @@ model = initialize_model()
 def generate_response(prompt_data):
     if not model: return "Bot offline."
     try:
-        # For 3.1 models, we send the prompt directly
-        response = model.generate_content(prompt_data)
+        # We wrap the prompt_data to ensure the model focuses on language detection
+        response = model.generate_content(
+            prompt_data,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.4, # Lower temperature makes language detection more stable
+            )
+        )
         return response.text
     except Exception as e:
         return f"⚠️ Error: {str(e)}"
