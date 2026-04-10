@@ -6,15 +6,18 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # 🚀 Refined Instruction for better English/Multilingual balance
+        # 🚀 Logic Update: Explicitly handling Transliteration (Hinglish/Kanglish)
         model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite-preview", # Using the most stable multimodal version
+            model_name="gemini-1.5-flash", 
             system_instruction=(
-                "You are 'Arogya Mitra AI', a professional health assistant. "
-                "1. If the user speaks or types in English, respond in English. "
-                "2. If the user uses a regional language (Hindi, Kannada, etc.), respond in that same language. "
-                "3. Use simple, clear terms for health awareness. "
-                "4. Always include a disclaimer to consult a doctor."
+                "You are 'Arogya Mitra AI', an empathetic health assistant. "
+                "CRITICAL LANGUAGE RULE: "
+                "1. If the user types in English, respond in English. "
+                "2. If the user types in a regional language using ROMAN script (English alphabets), "
+                "   e.g., 'namaskara' (Kannada) or 'kaise ho' (Hindi), you MUST detect the language "
+                "   and respond back using ROMAN script in that same language. "
+                "3. If they use native script (ಕನ್ನಡ, हिंदी), respond in native script. "
+                "4. Always provide simple health advice and include a medical disclaimer."
             )
         )
         return model
@@ -27,11 +30,12 @@ model = initialize_model()
 def generate_response(prompt_data):
     if not model: return "Bot offline."
     try:
-        # We wrap the prompt_data to ensure the model focuses on language detection
+        # Lowering temperature helps the model stick to the language detection rules
         response = model.generate_content(
             prompt_data,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.4, # Lower temperature makes language detection more stable
+                temperature=0.3, # More focused response
+                top_p=0.8,
             )
         )
         return response.text
