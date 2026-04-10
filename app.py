@@ -1,84 +1,73 @@
 import streamlit as st
 from chatbot import generate_response
 
-st.set_page_config(page_title="Arogya Mitra AI", page_icon="🏥")
+# 1. Page Config for a clean professional look
+st.set_page_config(page_title="Arogya Mitra AI", page_icon="🏥", layout="centered")
 
-# --- CUSTOM CSS: Unified Bottom Bar ---
+# --- 2. THE CSS: To match the modern AI frame ---
 st.markdown("""
     <style>
-    /* 1. Fix the container to the bottom and center it */
-    .bottom-container {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 70%; /* Adjust this to make the bar smaller/larger */
+    /* Hide the standard Streamlit elements */
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* Make the chat area wider and centered */
+    .main .block-container {
         max-width: 800px;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        background-color: #262730; /* Matches dark theme */
-        border: 1px solid #464646;
-        border-radius: 15px;
-        padding: 5px 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        padding-top: 2rem;
+        padding-bottom: 10rem;
     }
 
-    /* 2. Style the language dropdown to look like it's part of the bar */
-    .stSelectbox {
-        width: 80px !important;
-        margin-right: 10px;
+    /* Style the fixed bottom area for the search bar */
+    .stChatInputContainer {
+        padding-bottom: 20px;
+        background-color: transparent !important;
     }
-    
-    /* 3. Ensure the chat input doesn't have its own bulky container */
-    .stChatInput {
-        flex-grow: 1;
+
+    /* Small CSS hack to place the language selector above the input */
+    .floating-lang {
+        position: fixed;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 80px;
     }
-    
-    /* 4. Hide standard Streamlit padding that pushes things out of frame */
-    footer {visibility: hidden;}
-    .block-container {padding-bottom: 100px;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- CHAT HISTORY ---
+# --- 3. CHAT HISTORY LOGIC ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# This loop renders the messages in the "Gemini" bubble style
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- THE UNIFIED BOTTOM BAR ---
-# We use an empty placeholder to inject our elements into the flexbox
+# --- 4. THE UI: BOTTOM BAR ---
+# We place the language selector in a "floating" container above the bar
 with st.container():
-    # This creates the visual 'bar'
-    st.markdown('<div class="bottom-container">', unsafe_allow_html=True)
-    
-    # We use columns ONLY for the input elements to live inside the flexbox
-    c1, c2 = st.columns([0.15, 0.85])
-    
-    with c1:
-        # Language dropdown inside the bar
-        lang = st.selectbox("🌐", ["EN", "HI", "KN", "MR"], label_visibility="collapsed")
-    
-    with c2:
-        # Search bar with Mic inside the bar
-        prompt = st.chat_input("Ask me about health...", accept_audio=True)
-        
+    st.markdown('<div class="floating-lang">', unsafe_allow_html=True)
+    lang = st.selectbox("🌐", ["EN", "HI", "KN", "MR"], label_visibility="collapsed")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- LOGIC ---
-if prompt:
-    user_content = prompt.text if prompt.text else "🎤 Audio Message"
-    st.session_state.messages.append({"role": "user", "content": user_content})
-    with st.chat_message("user"):
-        st.markdown(user_content)
+    # st.chat_input is naturally at the bottom and looks just like Gemini's
+    prompt = st.chat_input("Ask me about health...", accept_audio=True)
 
+# --- 5. THE LOGIC ---
+if prompt:
+    # Handle user message
+    user_text = prompt.text if prompt.text else "🎤 Audio Message"
+    st.session_state.messages.append({"role": "user", "content": user_text})
+    
+    with st.chat_message("user"):
+        st.markdown(user_text)
+
+    # Handle AI Response
     with st.chat_message("assistant"):
-        with st.spinner("Analyzing..."):
-            # Update chatbot.py instructions if it still says the old name!
-            response = generate_response(prompt) 
+        with st.spinner(""): # Empty spinner for clean look
+            # IMPORTANT: Ensure your chatbot.py uses the new name 'Arogya Mitra AI'
+            response = generate_response(prompt)
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
-    st.rerun()
