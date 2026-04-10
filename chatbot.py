@@ -8,7 +8,7 @@ def initialize_model():
         
         # 🚀 Logic Update: Explicitly handling Transliteration (Hinglish/Kanglish)
         model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite", 
+            model_name="gemini-3.1-flash-lite-preview", 
             system_instruction=(
                 "You are 'Arogya Mitra AI', an empathetic health assistant. "
                 "CRITICAL LANGUAGE RULE: "
