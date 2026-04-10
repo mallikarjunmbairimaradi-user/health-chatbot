@@ -7,15 +7,14 @@ def initialize_model():
         genai.configure(api_key=api_key)
         
         # SYSTEM INSTRUCTION: This is the key for Auto-Detection
-        model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite", 
-            system_instruction=(
-                "You are 'Arogya Mitra AI', a professional health assistant. "
-                "CRITICAL: Detect the language of the user's input (Text or Audio). "
-                "Always respond in that SAME mother tongue (Kannada, Hindi, English, etc.). "
-                "Keep medical advice simple for rural users and always advise seeing a doctor."
-            )
-        )
+       # Use the most stable naming convention
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash-latest", 
+    system_instruction=(
+        "You are 'Arogya Mitra AI'. Detect the user's language automatically "
+        "and respond in the same language. Always advise consulting a doctor."
+    )
+)
         return model
     except Exception as e:
         st.error(f"Init Error: {e}")
