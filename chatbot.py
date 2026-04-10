@@ -26,8 +26,27 @@ model = initialize_model()
 def generate_response(prompt_data):
     if not model: return "Bot offline."
     try:
-        # For 3.1 models, we send the prompt directly
-        response = model.generate_content(prompt_data)
+        # Check if prompt_data is the dictionary from st.chat_input
+        if isinstance(prompt_data, dict):
+            content_parts = []
+            
+            # If there is text, add it
+            if prompt_data.get("text"):
+                content_parts.append(prompt_data["text"])
+                
+            # If there is audio, add it as a blob
+            if prompt_data.get("audio"):
+                content_parts.append({
+                    "mime_type": "audio/wav", 
+                    "data": prompt_data["audio"].getvalue()
+                })
+            
+            # Send the combined parts to Gemini
+            response = model.generate_content(content_parts)
+        else:
+            # Fallback for simple string input
+            response = model.generate_content(prompt_data)
+            
         return response.text
     except Exception as e:
-        return f"⚠️ Error: {str(e)}"
+        return f"⚠️ API Error: {str(e)}"
