@@ -6,22 +6,27 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # UPGRADE: Using the 2026 stable model name
+        # 🚀 2026 Update: Use the Gemini 3.1 series
+        # gemini-1.5-flash was shut down in Jan 2026
         model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite", 
-            system_instruction="You are Jan Swasthya AI. Support all Indian languages."
+            model_name="gemini-3.1-flash-lite-preview", 
+            system_instruction=(
+                "You are 'Jan Swasthya AI', a professional health assistant. "
+                "Respond in the same language the user uses. "
+                "Provide helpful medical awareness and always advise a doctor visit."
+            )
         )
         return model
     except Exception as e:
-        st.error(f"Init Error: {e}")
+        st.error(f"⚠️ API Error: {e}")
         return None
 
 model = initialize_model()
 
 def generate_response(prompt_data):
-    if not model: return "Model offline."
+    if not model: return "Bot offline."
     try:
-        # Gemini 3.1 handles the combined dict from st.chat_input automatically
+        # For 3.1 models, we send the prompt directly
         response = model.generate_content(prompt_data)
         return response.text
     except Exception as e:
