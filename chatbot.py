@@ -6,29 +6,27 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # 🚀 Fix: Use the standard stable name without the 'models/' prefix
-        # This is the most compatible version for Streamlit Cloud
+        # 🚀 2026 Fix: Using the highly compatible 'flash-8b' string
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash", 
+            model_name="gemini-1.5-flash-8b", 
             system_instruction=(
-                "You are 'Arogya Mitra AI', a helpful health assistant. "
-                "Detect the user's language and respond in that same language. "
-                "Keep answers simple and always include a medical disclaimer."
+                "You are 'Arogya Mitra AI'. Always detect the language "
+                "of the user and respond in that same language. "
+                "Provide simple health info and always include a medical disclaimer."
             )
         )
         return model
     except Exception as e:
-        st.error(f"⚠️ Connection Error: {e}")
+        st.error(f"⚠️ Init Error: {e}")
         return None
 
 model = initialize_model()
 
 def generate_response(input_parts):
-    if not model: return "Bot is currently offline."
+    if not model: return "Bot not configured."
     try:
-        # Pass the text/audio list to Gemini
+        # Pass text/audio list directly
         response = model.generate_content(input_parts)
-        return response.text if response.text else "I'm sorry, I couldn't process that."
+        return response.text if response.text else "I couldn't process that request."
     except Exception as e:
-        # If 1.5-flash fails, try one more fallback
         return f"⚠️ API Error: {str(e)}"
