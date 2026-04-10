@@ -27,17 +27,13 @@ def initialize_model():
 
 model = initialize_model()
 
-def generate_response(prompt_data):
-    if not model: return "Bot offline."
+def generate_response_stream(input_parts):
+    if not model: yield "Bot offline."; return
     try:
-        # Lowering temperature helps the model stick to the language detection rules
-        response = model.generate_content(
-            prompt_data,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.3, # More focused response
-                top_p=0.8,
-            )
-        )
-        return response.text
+        # 🚀 LOGIC FIX: Use stream=True for instant feedback
+        response = model.generate_content(input_parts, stream=True)
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
     except Exception as e:
-        return f"⚠️ Error: {str(e)}"
+        yield f"⚠️ API Error: {str(e)}"
