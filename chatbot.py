@@ -1,48 +1,43 @@
-import streamlit as st
 import google.generativeai as genai
+import streamlit as st
 
-# --- 1. CONFIGURATION ---
 def initialize_model():
     try:
-        # Using Streamlit Secrets for 2026 industry standards
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # System instructions ensure the bot stays in "Health Mode"
+        # System instructions optimized for Regional Indian Languages
         model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite-preview",
+            model_name="gemini-1.5-flash", 
             system_instruction=(
-                "You are an empathetic Public Health Awareness Chatbot named Jan Swasthya AI. "
-                "Provide accurate, simple information about diseases and vaccines. "
-                "Support multiple languages. Always end with a disclaimer to consult a doctor."
+                "You are 'Jan Swasthya AI', a multilingual public health assistant. "
+                "Detect the language used by the user (English, Hindi, Kannada, Marathi, etc.) "
+                "and respond accurately and empathetically in that SAME language. "
+                "Keep medical terms simple so rural users can understand. "
+                "Always include a disclaimer in the detected language to consult a doctor."
             )
         )
         return model
     except Exception as e:
-        st.error("⚠️ Configuration Error: Ensure GEMINI_API_KEY is in .streamlit/secrets.toml")
+        st.error("⚠️ API Configuration Error.")
         return None
 
-# Initialize model globally
 model = initialize_model()
 
-# --- 2. THE CHAT LOGIC ---
-def generate_response(user_input):
-    if not model:
-        return "Chatbot is not configured."
-        
+def generate_response(user_input, is_audio=False):
+    if not model: return "Bot not configured."
+    
     try:
-        # Optimized config for sub-second responses
-        response = model.generate_content(
-            user_input,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=350,
-                temperature=0.7,
-            )
-        )
-        
-        if response.text:
-            return response.text
-        return "I'm sorry, I couldn't generate a response."
+        if is_audio:
+            # Gemini hears the audio and identifies the language automatically
+            content = [
+                {"mime_type": "audio/wav", "data": user_input},
+                "Analyze this health query and respond in the speaker's language."
+            ]
+        else:
+            content = user_input
 
+        response = model.generate_content(content)
+        return response.text
     except Exception as e:
-        return f"⚠️ API Error: {str(e)}"
+        return f"⚠️ Error: {str(e)}"
