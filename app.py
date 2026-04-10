@@ -1,33 +1,38 @@
 import streamlit as st
 from chatbot import generate_response
-from openai import OpenAI  # Used for the Whisper model
-import io
 
-# Initialize the OpenAI client for transcription
-# (Make sure OPENAI_API_KEY is also in your secrets.toml)
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Page Config
+st.set_page_config(page_title="Jan Swasthya AI", page_icon="🏥")
+
+# Sidebar for Language Selection (Visual Guide)
+with st.sidebar:
+    st.header("🌐 Language / भाषा")
+    # This helps set the 'context' but Gemini will auto-detect too
+    lang = st.selectbox("Preferred Language", 
+                        ["English", "हिंदी (Hindi)", "ಕನ್ನಡ (Kannada)", "मराठी (Marathi)", "తెలుగు (Telugu)"])
+    st.info(f"Chatbot is now optimized for {lang}")
 
 st.title("🏥 Jan Swasthya AI")
+st.markdown("### Multilingual Health Awareness Assistant")
 
-# --- VOICE INPUT SECTION ---
-audio_data = st.audio_input("Record your health query")
+# --- VOICE INPUT (Direct Multilingual) ---
+audio_input = st.audio_input("Record your query in your mother tongue")
 
-if audio_data:
-    with st.spinner("Converting speech to text..."):
-        # 1. Convert the audio bytes into a file-like object
-        audio_file = io.BytesIO(audio_data.getvalue())
-        audio_file.name = "audio.wav"
+if audio_input:
+    with st.chat_message("user"):
+        st.write("🎤 Audio Message Received")
+    
+    with st.chat_message("assistant"):
+        with st.spinner("Analyzing audio..."):
+            response = generate_response(audio_input.getvalue(), is_audio=True)
+            st.markdown(response)
 
-        # 2. Use Whisper to transcribe (Supports Hindi, Kannada, etc.)
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1", 
-            file=audio_file
-        )
-        user_query = transcript.text
-        st.info(f"You said: {user_query}")
-
-        # 3. Send the transcribed text to your Gemini bot
-        with st.chat_message("assistant"):
-            with st.spinner("Analyzing..."):
-                response = generate_response(user_query)
-                st.write(response)
+# --- TEXT INPUT ---
+if prompt := st.chat_input("Type here (e.g., 'बुखार के लक्षण क्या हैं?')"):
+    with st.chat_message("user"):
+        st.write(prompt)
+    
+    with st.chat_message("assistant"):
+        with st.spinner("Processing..."):
+            response = generate_response(prompt, is_audio=False)
+            st.markdown(response)
