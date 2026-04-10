@@ -6,31 +6,28 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # 🚀 2026 LOGIC: Try the latest stable Gemini 2.5 Flash
-        # If gemini-2.5-flash is not available, it tries gemini-1.5-flash-latest
-        try:
-            model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash", 
-                system_instruction="You are Arogya Mitra AI. Support multilingual health queries."
+        # 🚀 2026 Update: Use the Gemini 3.1 series
+        # gemini-1.5-flash was shut down in Jan 2026
+        model = genai.GenerativeModel(
+            model_name="gemini-3.1-flash-lite-preview", 
+            system_instruction=(
+                "You are 'Jan Swasthya AI', a professional health assistant. "
+                "Respond in the same language the user uses. "
+                "Provide helpful medical awareness and always advise a doctor visit."
             )
-            # Simple check to see if model is reachable
-            model.generate_content("test") 
-        except:
-            # Fallback for older API keys or specific regional restrictions
-            model = genai.GenerativeModel(model_name="gemini-1.5-flash-latest")
-            
+        )
         return model
     except Exception as e:
-        # We return None so the app.py can show a friendly warning
+        st.error(f"⚠️ API Error: {e}")
         return None
 
 model = initialize_model()
 
-def generate_response(input_parts):
-    if not model:
-        return "⚠️ Bot connection failed. Please check your internet or API key."
+def generate_response(prompt_data):
+    if not model: return "Bot offline."
     try:
-        response = model.generate_content(input_parts)
-        return response.text if response.text else "I couldn't generate a response."
+        # For 3.1 models, we send the prompt directly
+        response = model.generate_content(prompt_data)
+        return response.text
     except Exception as e:
-        return f"⚠️ API Error: {str(e)}"
+        return f"⚠️ Error: {str(e)}"
