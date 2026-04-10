@@ -1,27 +1,25 @@
 import streamlit as st
 from chatbot import generate_response
 
-st.set_page_config(page_title="Health Chatbot")
+st.title("🏥 Jan Swasthya AI")
 
-st.title("🩺 Health Awareness Chatbot")
+# UI Sidebar for Multilingual Feature
+with st.sidebar:
+    st.header("Accessibility")
+    lang = st.selectbox("Select Language", ["English", "Hindi", "Kannada", "Marathi"])
+    st.success(f"Mode: {lang}")
 
-# Chat memory
-if "chat" not in st.session_state:
-    st.session_state.chat = []
+# Voice Support Widget (Matching your LinkedIn claim)
+audio_input = st.audio_input("Record your query")
 
-# Input box
-user_input = st.chat_input("Ask your health question...")
-
-# Process input
-if user_input:
-    response = generate_response(user_input)
-
-    st.session_state.chat.append(("You", user_input))
-    st.session_state.chat.append(("Bot", response))
-
-# Display chat
-for sender, msg in st.session_state.chat:
-    if sender == "You":
-        st.chat_message("user").write(msg)
-    else:
-        st.chat_message("assistant").write(msg)
+# Chat Input
+if prompt := st.chat_input("Ask me about health..."):
+    # Display user message
+    with st.chat_message("user"):
+        st.write(prompt)
+    
+    # Display AI response with the spinner you liked
+    with st.chat_message("assistant"):
+        with st.spinner("Analyzing..."):
+            response = generate_response(prompt)
+            st.write(response)
