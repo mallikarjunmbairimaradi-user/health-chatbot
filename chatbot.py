@@ -6,23 +6,19 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # System instructions optimized for Regional Indian Languages
+        # Using the standard naming convention for 2026
         model = genai.GenerativeModel(
-           model_name="models/gemini-1.5-flash", 
+            model_name="models/gemini-1.5-flash", 
             system_instruction=(
-                "You are 'Jan Swasthya AI', a multilingual public health assistant. "
-                "Detect the language used by the user (English, Hindi, Kannada, Marathi, etc.) "
-                "and respond accurately and empathetically in that SAME language. "
-                "Keep medical terms simple so rural users can understand. "
-                "Always include a disclaimer in the detected language to consult a doctor."
+                "You are Jan Swasthya AI. Respond in the user's language. "
+                "Provide health awareness and always advise seeing a doctor."
             )
         )
         return model
     except Exception as e:
-        st.error("⚠️ API Configuration Error.")
-        return None
-
-model = initialize_model()
+        # If it fails, try the fallback name
+        st.warning("Trying fallback model naming...")
+        return genai.GenerativeModel(model_name="gemini-1.5-flash")
 
 def generate_response(user_input, is_audio=False):
     if not model: return "Bot not configured."
