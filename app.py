@@ -3,52 +3,46 @@ from chatbot import generate_response
 
 st.title("🏥 Jan Swasthya AI")
 
-# --- CUSTOM CSS FOR ICON POSITIONING ---
+# --- CUSTOM CSS: Floating Language Selector ---
 st.markdown("""
     <style>
-    /* This targets the container holding the chat input and audio */
-    .stChatInputContainer {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    /* Optional: Style the audio input to be smaller/compact */
-    section[data-testid="stAudioInput"] {
-        width: 60px !important;
-        min-width: 60px !important;
+    /* Positions the language selector just above the chat input at the bottom */
+    .stSelectbox {
+        position: fixed;
+        bottom: 85px;
+        right: 20px;
+        width: 150px !important;
+        z-index: 1000;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- THE UI LAYOUT ---
-# Create two columns: one for the search bar (large) and one for the mic (small)
-col1, col2 = st.columns([0.85, 0.15])
+# 1. Language selector that "floats" above the input
+lang = st.selectbox("Language", ["English", "हिंदी", "ಕನ್ನಡ", "मराठी"], label_visibility="collapsed")
 
-with col2:
-    # This puts the Mic in the "right corner" area
-    audio_input = st.audio_input(" ", label_visibility="collapsed")
+# 2. Unified Chat Input (Voice + Text combined)
+# This keeps the bar at the bottom and puts the mic INSIDE the bar
+prompt = st.chat_input("Ask me about health...", accept_audio=True)
 
-with col1:
-    # Standard Chat Input
-    prompt = st.chat_input("Ask me about health...")
-
-# --- LOGIC HANDLING ---
-
-# 1. Handle Voice Input
-if audio_input:
-    with st.chat_message("user"):
-        st.write("🎤 Audio Message Received")
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing..."):
-            response = generate_response(audio_input.getvalue(), is_audio=True)
-            st.markdown(response)
-
-# 2. Handle Text Input
 if prompt:
-    with st.chat_message("user"):
-        st.write(prompt)
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing..."):
-            response = generate_response(prompt, is_audio=False)
-            st.markdown(response)
+    # Handle Text Input
+    if prompt.text:
+        with st.chat_message("user"):
+            st.write(prompt.text)
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing..."):
+                response = generate_response(prompt.text)
+                st.write(response)
+                
+    # Handle Audio Input (Inside the same bar)
+    if prompt.audio:
+        with st.chat_message("user"):
+            st.write("🎤 Audio Message Sent")
+        with st.chat_message("assistant"):
+            with st.spinner("Listening..."):
+                # Pass audio data directly to Gemini
+                response = generate_response([
+                    {"mime_type": "audio/wav", "data": prompt.audio.getvalue()},
+                    f"Respond in {lang}"
+                ])
+                st.write(response)
