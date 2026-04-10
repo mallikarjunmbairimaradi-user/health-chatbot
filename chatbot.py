@@ -8,7 +8,7 @@ def initialize_model():
         
         # System instructions optimized for Regional Indian Languages
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash", 
+           model_name="models/gemini-1.5-flash", 
             system_instruction=(
                 "You are 'Jan Swasthya AI', a multilingual public health assistant. "
                 "Detect the language used by the user (English, Hindi, Kannada, Marathi, etc.) "
