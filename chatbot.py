@@ -6,43 +6,31 @@ def initialize_model():
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # 🚀 LOGIC FIX: Try the 2026 stable identifier first
-        # gemini-1.5-flash and gemini-3.1-flash often cause 404s if 
-        # the 'models/' prefix is missing or if the API version is mismatched.
-        
-        model_name = "gemini-1.5-flash" # Use the base name for maximum compatibility
-        
-        model = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=(
-                "You are Arogya Mitra AI. Detect the language of the input "
-                "and respond in that same language. Stay professional and health-focused."
+        # 🚀 2026 LOGIC: Try the latest stable Gemini 2.5 Flash
+        # If gemini-2.5-flash is not available, it tries gemini-1.5-flash-latest
+        try:
+            model = genai.GenerativeModel(
+                model_name="gemini-2.5-flash", 
+                system_instruction="You are Arogya Mitra AI. Support multilingual health queries."
             )
-        )
+            # Simple check to see if model is reachable
+            model.generate_content("test") 
+        except:
+            # Fallback for older API keys or specific regional restrictions
+            model = genai.GenerativeModel(model_name="gemini-1.5-flash-latest")
+            
         return model
     except Exception as e:
-        # If the first attempt fails, we don't crash the app
+        # We return None so the app.py can show a friendly warning
         return None
 
-# Global model instance
 model = initialize_model()
 
 def generate_response(input_parts):
-    global model
-    # If the model failed to initialize at start, try a last-resort fallback here
-    if model is None:
-        try:
-            fallback_name = "gemini-pro" # The most reliable fallback in Google's history
-            model = genai.GenerativeModel(fallback_name)
-        except:
-            return "⚠️ API Connection Error. Please verify your API Key in secrets."
-
+    if not model:
+        return "⚠️ Bot connection failed. Please check your internet or API key."
     try:
-        # Multimodal generation
         response = model.generate_content(input_parts)
-        if response and response.text:
-            return response.text
-        return "I'm sorry, I couldn't generate a text response. Please try again."
+        return response.text if response.text else "I couldn't generate a response."
     except Exception as e:
-        # This catches the 404 specifically during the call
-        return f"⚠️ API Error: {str(e)}. Tip: Ensure your API key has access to the Gemini API."
+        return f"⚠️ API Error: {str(e)}"
